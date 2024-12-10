@@ -8,14 +8,10 @@ namespace SysCapteur.Services
 {
     public static class ConfigureServices
     {
-        public readonly IConfiguration configuration;
-        public ConfigureServices(IConfiguration Configuration)
+
+        public static void Services(IServiceCollection services, IConfiguration Configuration)
         {
-            configuration = Configuration;
-        }
-        public static void Services(IServiceCollection services,)
-        {
-            var jwtSettings = configuration.GetSection("Jwt");
+            var jwtSettings = Configuration.GetSection("Jwt");
             var secretKey = jwtSettings["SecretKey"]!;
             var issuer = jwtSettings["Issuer"]!;
             var audience = jwtSettings["Audience"]!;
