@@ -1,0 +1,6 @@
+@SysCapteur_HostAddress = http://localhost:5282
+
+GET {{SysCapteur_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
