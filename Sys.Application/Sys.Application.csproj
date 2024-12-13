@@ -7,12 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Exceptions\" />
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.11" />
+    <ProjectReference Include="..\Sys.Domain\Sys.Domain.csproj" />
   </ItemGroup>
 
 </Project>
