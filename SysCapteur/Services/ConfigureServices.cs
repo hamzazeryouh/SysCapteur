@@ -1,6 +1,14 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Autofac.Core;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Sys.Application;
+using Sys.Application.DTO.Auth;
+using Sys.Domain.Entities.Users;
+using Sys.Presistence.DataContext;
+using Sys.Presistence.Repository.Auth;
+using Sys.Presistence.Services.AuthService;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -8,23 +16,21 @@ namespace SysCapteur.Services
 {
     public static class ConfigureServices
     {
-        public readonly IConfiguration configuration;
-        public ConfigureServices(IConfiguration Configuration)
+
+        public static void ConfigureAuth(this IHostApplicationBuilder Builder)
         {
-            configuration = Configuration;
-        }
-        public static void Services(IServiceCollection services,)
-        {
-            var jwtSettings = configuration.GetSection("Jwt");
+            var jwtSettings = Builder.Configuration.GetSection("Jwt");
             var secretKey = jwtSettings["SecretKey"]!;
             var issuer = jwtSettings["Issuer"]!;
             var audience = jwtSettings["Audience"]!;
             var expirationMinutes = int.Parse(jwtSettings["ExpirationMinutes"]!);
-            // Ajouter AuthService comme singleton
-            services.AddSingleton<IAuthService>(new AuthService(secretKey, issuer, audience, expirationMinutes));
-
+            Builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
+         
+            
             // Configurer l'authentification JWT
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            Builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -39,8 +45,11 @@ namespace SysCapteur.Services
                         ValidAudience = audience
                     };
                 });
-
-            services.AddControllers();
+            // Ajouter AuthService and repo comme singleton
+            Builder.Services.Configure<JwtSettings>(Builder.Configuration.GetSection("JWT"));
+            Builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+            Builder.Services.AddScoped<IAuthService, AuthService>();
         }
+
     }
 }
