@@ -6,7 +6,9 @@ using Microsoft.IdentityModel.Tokens;
 using Sys.Application;
 using Sys.Application.DTO.Auth;
 using Sys.Domain.Entities.Users;
+using Sys.Presistence.DataAccess;
 using Sys.Presistence.DataContext;
+using Sys.Presistence.Repository;
 using Sys.Presistence.Repository.Auth;
 using Sys.Presistence.Services.AuthService;
 using System.Runtime.CompilerServices;
@@ -47,6 +49,8 @@ namespace SysCapteur.Services
                 });
             // Ajouter AuthService and repo comme singleton
             Builder.Services.Configure<JwtSettings>(Builder.Configuration.GetSection("JWT"));
+            Builder.Services.AddScoped<IUnitOfWork, UnitOfWork>(); // Register UnitOfWork
+            Builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
             Builder.Services.AddScoped<IAuthRepository, AuthRepository>();
             Builder.Services.AddScoped<IAuthService, AuthService>();
         }
