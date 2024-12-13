@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Sys.Presistence.DataAccess
 {
-    public interface IUnitOfWork
+    public interface IUnitOfWork : IDisposable
     {
-        IBaseRepository<T> Repository<T>() where T : class;
-        Task<int> SaveChangesAsync();
+        IBaseRepository<TEntity, TKey> GetRepository<TEntity, TKey>() where TEntity : class;
+        Task CompleteAsync();
     }
 }

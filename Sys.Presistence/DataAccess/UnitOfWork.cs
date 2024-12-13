@@ -1,4 +1,5 @@
-﻿using Sys.Presistence.DataContext;
+﻿using Microsoft.EntityFrameworkCore;
+using Sys.Presistence.DataContext;
 using Sys.Presistence.Repository;
 using System;
 using System.Collections.Generic;
@@ -10,33 +11,33 @@ namespace Sys.Presistence.DataAccess
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly ApplicationDbContext _context;
 
-        // Dictionary to store repositories, avoiding repeated creation of repositories
-        private readonly Dictionary<string, object> _repositories;
+        private readonly ApplicationDbContext _context;
+        private readonly Dictionary<string, object> _repositories = new Dictionary<string, object>();
 
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
-            _repositories = new Dictionary<string, object>();
         }
 
-        public IBaseRepository<T> Repository<T>() where T : class
+        public IBaseRepository<TEntity, TKey> GetRepository<TEntity, TKey>() where TEntity : class
         {
-            // Check if repository already exists, otherwise create it
-            var key = typeof(T).Name;
-            if (!_repositories.ContainsKey(key))
+            var entityType = typeof(TEntity).Name;
+            if (!_repositories.ContainsKey(entityType))
             {
-                var repository = new BaseRepository<T>(_context);
-                _repositories.Add(key, repository);
+                _repositories[entityType] = new BaseRepository<TEntity, TKey>(_context);
             }
 
-            return (IBaseRepository<T>)_repositories[key];
+            return (IBaseRepository<TEntity, TKey>)_repositories[entityType];
         }
 
-        public async Task<int> SaveChangesAsync()
+        public async Task CompleteAsync()
         {
-            return await _context.SaveChangesAsync(); // Commit all changes to the database
+            await _context.SaveChangesAsync();
+        }
+        public void Dispose()
+        {
+            _context.Dispose();
         }
     }
 }

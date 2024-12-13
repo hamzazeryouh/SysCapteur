@@ -8,46 +8,45 @@ using System.Threading.Tasks;
 
 namespace Sys.Presistence.Repository
 {
-    public class BaseRepository<T> : IBaseRepository<T> where T : class
+    public class BaseRepository<TEntity, TKey> : IBaseRepository<TEntity, TKey> where TEntity : class
     {
-        protected readonly ApplicationDbContext _context;
-        private readonly DbSet<T> _dbSet;
+        private readonly DbContext _context;
 
-        public BaseRepository(ApplicationDbContext context)
+        public BaseRepository(DbContext context)
         {
             _context = context;
-            _dbSet = context.Set<T>();
         }
 
-        public async Task<T> GetByIdAsync(int id)
+        public async Task<TEntity> GetByIdAsync(TKey id)
         {
-            return await _dbSet.FindAsync(id);
+            return await _context.Set<TEntity>().FindAsync(id);
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public async Task<List<TEntity>> GetAllAsync()
         {
-            return await _dbSet.ToListAsync();
+            return await _context.Set<TEntity>().ToListAsync();
         }
 
-        public async Task<T> AddAsync(T entity)
+        public async Task<bool> AddAsync(TEntity entity)
         {
-            await _dbSet.AddAsync(entity);
-            return entity;
+            await _context.Set<TEntity>().AddAsync(entity);
+            return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<bool> UpdateAsync(T entity)
+        public async Task<bool> UpdateAsync(TEntity entity)
         {
-            _dbSet.Update(entity);
-            return true;
+            _context.Set<TEntity>().Update(entity);
+            return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(TKey id)
         {
-            var entity = await _dbSet.FindAsync(id);
+            var entity = await GetByIdAsync(id);
             if (entity == null) return false;
 
-            _dbSet.Remove(entity);
-            return true;
+            _context.Set<TEntity>().Remove(entity);
+            return await _context.SaveChangesAsync() > 0;
         }
     }
+
 }

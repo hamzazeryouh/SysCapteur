@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Sys.Presistence.Repository
 {
-    public interface IBaseRepository<T> where T : class
+    public interface IBaseRepository<TEntity, TKey> where TEntity : class
     {
-        Task<T> GetByIdAsync(int id); // Get an entity by its ID
-        Task<IEnumerable<T>> GetAllAsync(); // Get all entities
-        Task<T> AddAsync(T entity); // Add a new entity
-        Task<bool> UpdateAsync(T entity); // Update an entity
-        Task<bool> DeleteAsync(int id); // Delete an entity by ID
+        Task<TEntity> GetByIdAsync(TKey id);
+        Task<List<TEntity>> GetAllAsync();
+        Task<bool> AddAsync(TEntity entity);
+        Task<bool> UpdateAsync(TEntity entity);
+        Task<bool> DeleteAsync(TKey id);
     }
 }
