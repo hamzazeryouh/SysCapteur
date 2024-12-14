@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Sys.Domain.Entities.Sensor;
+using Sys.Presistence.DataContext;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace Sys.Presistence.Repository
 {
     public class SensorRepository : BaseRepository<Sensor,int>, ISensorRepository
     {
-        public SensorRepository(DbContext context) : base(context) { }
+        public SensorRepository(ApplicationDbContext context) : base(context) { }
 
     }
 }

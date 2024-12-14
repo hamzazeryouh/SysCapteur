@@ -22,6 +22,7 @@ namespace SysCapteur.Controllers
             _authService = authService;
             _userManager = userManager;
         }
+        [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
             // Call the LoginAsync method from AuthService
@@ -36,7 +37,8 @@ namespace SysCapteur.Controllers
             // Return the generated JWT token if successful
             return StatusCode(response.StatusCode, response.Data);
         }
-        public async Task<IActionResult> RegisterUser(RegisterModel model)
+        [HttpPost("register")]
+        public async Task<IActionResult> RegisterUser([FromBody] RegisterModel model)
         {
             var response = await _authService.RegisterAsync(model);
 

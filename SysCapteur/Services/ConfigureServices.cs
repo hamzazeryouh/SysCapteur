@@ -1,11 +1,14 @@
 ﻿using Autofac.Core;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Sys.Application;
+using Sys.Application.DTO;
 using Sys.Application.DTO.Auth;
 using Sys.Application.Interfaces;
+using Sys.Domain.Entities.Sensor;
 using Sys.Domain.Entities.Users;
 using Sys.Presistence.DataAccess;
 using Sys.Presistence.DataContext;
@@ -13,6 +16,8 @@ using Sys.Presistence.Repository;
 using Sys.Presistence.Repository.Auth;
 using Sys.Presistence.Services;
 using Sys.Presistence.Services.AuthService;
+using Sys.Presistence.Services.BaseService;
+using SysCapteur.Helpers;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -49,14 +54,17 @@ namespace SysCapteur.Services
                         ValidAudience = audience
                     };
                 });
-            // Ajouter AuthService and repo comme singleton
-            Builder.Services.Configure<JwtSettings>(Builder.Configuration.GetSection("JWT"));
-            Builder.Services.AddScoped<IUnitOfWork, UnitOfWork>(); // Register UnitOfWork
+            Builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             Builder.Services.AddScoped(typeof(IBaseRepository<,>), typeof(BaseRepository<,>));
+            Builder.Services.AddScoped(typeof(IBaseService<,,>), typeof(BaseService<,,>));
+
             Builder.Services.AddScoped<ISensorRepository, SensorRepository>();
             Builder.Services.AddScoped<ISensorService, SensorService>();
+
             Builder.Services.AddScoped<IAuthRepository, AuthRepository>();
             Builder.Services.AddScoped<IAuthService, AuthService>();
+
+            Builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
         }
 
     }

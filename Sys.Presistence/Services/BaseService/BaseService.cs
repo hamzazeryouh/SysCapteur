@@ -1,4 +1,5 @@
-﻿using Sys.Application.Helpers;
+﻿using AutoMapper;
+using Sys.Application.Helpers;
 using Sys.Application.Interfaces;
 using Sys.Presistence.DataAccess;
 using Sys.Presistence.Repository;
@@ -11,59 +12,75 @@ using System.Threading.Tasks;
 
 namespace Sys.Presistence.Services.BaseService
 {
-    public class BaseService<TEntity, TKey> : IBaseService<TEntity, TKey> where TEntity : class
+    public class BaseService<TEntity, TKey, TDto> : IBaseService<TEntity, TKey, TDto>
+        where TEntity : class
+        where TDto : class
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
         private readonly IBaseRepository<TEntity, TKey> _repository;
 
-        public BaseService(IUnitOfWork unitOfWork, IBaseRepository<TEntity, TKey> repository)
+        public BaseService(IUnitOfWork unitOfWork, IBaseRepository<TEntity, TKey> repository, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _repository = repository;
+            _mapper = mapper;
         }
 
-        public async Task<IResponse<TEntity>> GetByIdAsync(TKey id)
+        private TDto MapToDto(TEntity entity)
+        {
+            
+            return _mapper.Map<TDto>(entity);
+        }
+
+        public async Task<IResponse<TDto>> GetByIdAsync(TKey id)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
             {
                 var error = new CustomException(errorCode: 1001, message: $"{typeof(TEntity).Name} not found.");
-                return new Response<TEntity>(error, statusCode: 404);
+                return new Response<TDto>(error, statusCode: 404);
             }
 
-            return new Response<TEntity>(entity);
+            var dto = MapToDto(entity);
+            return new Response<TDto>(dto);
         }
 
-        public async Task<IResponse<List<TEntity>>> GetAllAsync()
+        public async Task<IResponse<List<TDto>>> GetAllAsync()
         {
             var entities = await _repository.GetAllAsync();
-            return new Response<List<TEntity>>(entities.ToList());
+            var dtos = entities.Select(MapToDto).ToList();
+            return new Response<List<TDto>>(dtos);
         }
 
-        public async Task<IResponse<TEntity>> CreateAsync(TEntity entity)
+        public async Task<IResponse<TDto>> CreateAsync(TDto model)
         {
+            var entity=  _mapper.Map<TEntity>(model);
             var isCreated = await _repository.AddAsync(entity);
             if (!isCreated)
             {
                 var error = new CustomException(errorCode: 1002, message: "Error creating entity.");
-                return new Response<TEntity>(error, statusCode: 400);
+                return new Response<TDto>(error, statusCode: 400);
             }
 
             await _unitOfWork.CompleteAsync();
-            return new Response<TEntity>(entity, statusCode: 201);
+            var dto = MapToDto(entity);
+            return new Response<TDto>(dto, statusCode: 201);
         }
 
-        public async Task<IResponse<TEntity>> UpdateAsync(TEntity entity)
+        public async Task<IResponse<TDto>> UpdateAsync(TDto model)
         {
+            var entity = _mapper.Map<TEntity>(model);
             var isUpdated = await _repository.UpdateAsync(entity);
             if (!isUpdated)
             {
                 var error = new CustomException(errorCode: 1003, message: "Error updating entity.");
-                return new Response<TEntity>(error, statusCode: 400);
+                return new Response<TDto>(error, statusCode: 400);
             }
 
             await _unitOfWork.CompleteAsync();
-            return new Response<TEntity>(entity);
+            var dto = MapToDto(entity);
+            return new Response<TDto>(dto);
         }
 
         public async Task<IResponse<bool>> DeleteAsync(TKey id)
@@ -79,5 +96,6 @@ namespace Sys.Presistence.Services.BaseService
             return new Response<bool>(true);
         }
     }
+
 
 }

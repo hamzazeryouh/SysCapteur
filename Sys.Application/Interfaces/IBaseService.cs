@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace Sys.Application.Interfaces
 {
-    public interface IBaseService<TEntity, TKey> where TEntity : class
+    public interface IBaseService<TEntity, TKey, TDto> where TEntity : class 
     {
-        Task<IResponse<TEntity>> GetByIdAsync(TKey id);
-        Task<IResponse<List<TEntity>>> GetAllAsync();
-        Task<IResponse<TEntity>> CreateAsync(TEntity entity);
-        Task<IResponse<TEntity>> UpdateAsync(TEntity entity);
+        Task<IResponse<TDto>> GetByIdAsync(TKey id);
+        Task<IResponse<List<TDto>>> GetAllAsync();
+        Task<IResponse<TDto>> CreateAsync(TDto entity);
+        Task<IResponse<TDto>> UpdateAsync(TDto entity);
         Task<IResponse<bool>> DeleteAsync(TKey id);
     }
 }

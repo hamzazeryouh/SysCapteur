@@ -1,4 +1,6 @@
-﻿using Sys.Application.Interfaces;
+﻿using AutoMapper;
+using Sys.Application.DTO;
+using Sys.Application.Interfaces;
 using Sys.Domain.Entities.Sensor;
 using Sys.Presistence.DataAccess;
 using Sys.Presistence.Services.BaseService;
@@ -10,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace Sys.Presistence.Services
 {
-    public class SensorService : BaseService<Sensor, int>, ISensorService
+    public class SensorService : BaseService<Sensor, int, SensorDto>, ISensorService
     {
-        public SensorService(IUnitOfWork unitOfWork) : base(unitOfWork, unitOfWork.GetRepository<Sensor, int>()) { }
+        public SensorService(IUnitOfWork unitOfWork , IMapper mapper) : base(unitOfWork, unitOfWork.GetRepository<Sensor, int>(), mapper) { }
     }
 
 }

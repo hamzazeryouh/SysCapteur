@@ -23,7 +23,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 //    options.Configuration = builder.Configuration.GetValue<string>("Redis:ConnectionString"); // e.g., "localhost:6379"
 //    options.InstanceName = "SysAppCache:";
 //});
-builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
+
 builder.ConfigureAuth();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
