@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Win32;
 using Sys.Application;
 using Sys.Application.DTO.Auth;
+using Sys.Application.Helpers;
 using Sys.Domain.Entities.Users;
 using SysCapteur.Exceptions;
-using SysCapteur.Helpers;
 
 namespace SysCapteur.Controllers
 {
@@ -22,56 +22,36 @@ namespace SysCapteur.Controllers
             _authService = authService;
             _userManager = userManager;
         }
-        [HttpPost("Login")]
-        public async Task<ActionResult<Response<string>>> Login([FromBody] LoginModel model)
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
-            if (!ModelState.IsValid)
+            // Call the LoginAsync method from AuthService
+            var response = await _authService.LoginAsync(model.Email, model.Password);
+
+            // If the response indicates failure, return the appropriate status code and error
+            if (!response.Success)
             {
-                // Return a BadRequest with the validation errors
-                var CustomException = new CustomException(1001, "Invalid input data.");
-                var Response = new Response<string>(CustomException, 400);
-                return BadRequest(Response);
+                return StatusCode(response.StatusCode, response.Error);
             }
 
-            try
-            {
-                var token = await _authService.LoginAsync(model.Email, model.Password);
-
-                var Response = new Response<string>(token, 200);
-                return Ok(Response);
-            }
-            catch (Exception ex)
-            {
-                var CustomException = new CustomException(1000, "An unexpected error occurred.");
-                var Response = new Response<string>(CustomException, 500);
-                return StatusCode(500, Response);
-            }
-           
+            // Return the generated JWT token if successful
+            return StatusCode(response.StatusCode, response.Data);
         }
         [HttpPost("register")]
-        public async Task<ActionResult<Response<string>>> Register([FromBody] RegisterModel model)
+        public async Task<IActionResult> RegisterUser([FromBody] RegisterModel model)
         {
-            if (!ModelState.IsValid)
+            var response = await _authService.RegisterAsync(model);
+
+            if (!response.Success)
             {
-                var CustomException = new CustomException(1001, "Invalid input data.");
-                var Response = new Response<string>(CustomException, 400);
-                return BadRequest(Response);
+                return StatusCode(response.StatusCode, response.Error);
             }
 
-            try
-            {
-                // Register user and generate JWT token
-                return await _authService.RegisterAsync(model);
-            }
-            catch (Exception ex)
-            {
-                var CustomException = new CustomException(1002, ex.Message);
-                var Response = new Response<string>(CustomException, 500);
-                return StatusCode(500, Response);
-            }
+            return StatusCode(response.StatusCode, response.Data);
         }
-
     }
-   
 
 }
+   
+
+

@@ -1,5 +1,5 @@
 ﻿using Sys.Application.DTO.Auth;
-using SysCapteur.Helpers;
+using Sys.Application.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ namespace Sys.Application
 {
     public interface IAuthService
     {
-        Task<string> LoginAsync(string email, string password);
-        Task<Response<string>> RegisterAsync(RegisterModel model);
+        Task<IResponse<string>> LoginAsync(string email, string password);
+        Task<IResponse<string>> RegisterAsync(RegisterModel model);
     }
 }

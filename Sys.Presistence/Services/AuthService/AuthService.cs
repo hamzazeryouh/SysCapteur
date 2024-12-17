@@ -4,10 +4,10 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Sys.Application;
 using Sys.Application.DTO.Auth;
+using Sys.Application.Helpers;
 using Sys.Domain.Entities.Users;
 using Sys.Presistence.Repository.Auth;
 using SysCapteur.Exceptions;
-using SysCapteur.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -34,17 +34,40 @@ namespace Sys.Presistence.Services.AuthService
             _jwtSettings = jwtSettings.Value;
         }
 
-        public async Task<string> LoginAsync(string email, string password)
+        public async Task<IResponse<string>> LoginAsync(string email, string password)
         {
-            var user = await _authRepository.AuthenticateUserAsync(email, password);
-            if (user == null)
+            try
             {
-                throw new UnauthorizedAccessException("Invalid login attempt.");
-            }
+                // Validate the input
+                if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+                {
+                    var error = new CustomException(errorCode: 1005, message: "Email and password cannot be empty.");
+                    return new Response<string>(error, statusCode: 400);
+                }
 
-            return GenerateJwtToken(user);
+                // Attempt to authenticate the user
+                var user = await _authRepository.AuthenticateUserAsync(email, password);
+                if (user == null)
+                {
+                    var error = new CustomException(errorCode: 1001, message: "Invalid login attempt.");
+                    return new Response<string>(error, statusCode: 401);
+                }
+
+                // Generate the JWT token for the user
+                var token = GenerateJwtToken(user);
+
+                // Return a success response with the JWT token
+                return new Response<string>(token, statusCode: 200);
+            }
+            catch (Exception ex)
+            {
+                // Handle unexpected errors
+                var error = new CustomException(errorCode: 1000, message: "An unexpected error occurred: " + ex.Message);
+                return new Response<string>(error, statusCode: 500);
+            }
         }
-        public async Task<Response<string>> RegisterAsync(RegisterModel model)
+
+        public async Task<IResponse<string>> RegisterAsync(RegisterModel model)
         {
             try
             {
@@ -54,15 +77,15 @@ namespace Sys.Presistence.Services.AuthService
                 if (!isValid)
                 {
                     var errorMessages = string.Join(", ", validationResults.Select(v => v.ErrorMessage));
-                    var error = new CustomException(errorCode: 1004, message: "Validation failed: " + errorMessages);
-                    return new Response<string>(error, statusCode: 400);
+                    var error = new CustomException(1004, "Validation failed: " + errorMessages);
+                    return new Response<string>(error, 400);
                 }
 
                 var existingUser = await _authRepository.GetUserByEmailAsync(model.Email);
                 if (existingUser != null)
                 {
-                    var error = new CustomException(errorCode: 1002, message: "A user with this email already exists.");
-                    return new Response<string>(error, statusCode: 400);
+                    var error = new CustomException(1002, "A user with this email already exists.");
+                    return new Response<string>(error, 400);
                 }
 
                 var user = _mapper.Map<ApplicationUser>(model);
@@ -70,22 +93,21 @@ namespace Sys.Presistence.Services.AuthService
                 var isCreated = await _authRepository.CreateUserAsync(user, model.Password);
                 if (!isCreated)
                 {
-                    // If the creation failed, return a response with an error message
-                    var error = new CustomException(errorCode: 1003, message: "Error occurred while creating the user.");
-                    return new Response<string>(error, statusCode: 400);
+                    var error = new CustomException(1003, "Error occurred while creating the user.");
+                    return new Response<string>(error, 400);
                 }
 
                 // Generate JWT token for the new user
                 var token = GenerateJwtToken(user);
 
                 // Return the response with the JWT token
-                return new Response<string>(token, statusCode: 201);
+                return new Response<string>(token, 201);
             }
             catch (Exception ex)
             {
                 // Handle unexpected errors and return a generic error response
-                var error = new CustomException(errorCode: 1000, message: "An unexpected error occurred: " + ex.Message);
-                return new Response<string>(error, statusCode: 500);
+                var error = new CustomException(1000, "An unexpected error occurred: " + ex.Message);
+                return new Response<string>(error, 500);
             }
         }
 
